@@ -87,7 +87,6 @@ function Navbar() {
                     )}
                 </div>
             )}
-
         </nav>
     );
 }
