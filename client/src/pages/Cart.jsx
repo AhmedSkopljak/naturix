@@ -102,7 +102,7 @@ const Cart = () => {
                                         </p>
                                     ))
                                 }
-                                <p onClick={() => navigate("/add-adress")} className="text-primary text-center cursor-pointer p-2 hover:bg-primary/10">
+                                <p onClick={() => navigate("/add-address")} className="text-primary text-center cursor-pointer p-2 hover:bg-primary/10">
                                     Add address
                                 </p>
                             </div>
