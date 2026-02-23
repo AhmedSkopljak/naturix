@@ -14,6 +14,9 @@ import AddAddress from "./pages/AddAddress.jsx";
 import MyOrders from "./pages/MyOrders.jsx";
 import SellerLogin from "./components/seller/SellerLogin.jsx";
 import SellerLayout from "./pages/seller/SellerLayout.jsx";
+import AddProduct from "./pages/seller/AddProduct.jsx";
+import ProductList from "./pages/seller/ProductList.jsx";
+import Orders from "./pages/seller/Orders.jsx";
 
 function App() {
     const isSellerPath = useLocation().pathname.includes("seller");
@@ -23,7 +26,7 @@ function App() {
             {isSellerPath ? null : <Navbar />}
             {showUserLogin ? <Login /> : null}
             <Toaster />
-            <div className={`${isSellerPath} ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"`}>
+            <div className={`${isSellerPath ? '' : 'px-6 md:px-16 lg:px-24 xl:px-32'}`}>
                 <Routes>
                     <Route path={"/"} element={<Home/>}/>
                     <Route path={"/products"} element={<AllProducts />}/>
@@ -33,7 +36,9 @@ function App() {
                     <Route path={"/add-address"} element={<AddAddress />}/>
                     <Route path={"/my-orders"} element={<MyOrders />}/>
                     <Route path={"/seller"} element={isSeller ? <SellerLayout /> : <SellerLogin />}>
-
+                        <Route index element={isSeller ? <AddProduct /> : null} />
+                        <Route path={"product-list"} element={<ProductList />} />
+                        <Route path={"orders"} element={<Orders />} />
                     </Route>
                 </Routes>
             </div>
