@@ -12,6 +12,6 @@ const upload = multer({ storage });
 productRouter.post("/add", authSeller, upload.array("images"), addProduct);
 productRouter.get("/list", productList);
 productRouter.get("/id", productById);
-productRouter.get("/stock", authSeller, changeStock);
+productRouter.post("/stock", authSeller, changeStock);
 
 export default productRouter;

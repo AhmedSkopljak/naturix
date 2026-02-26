@@ -19,9 +19,32 @@ export const AppContextProvider = ({children})=>{
     const [cartItems, setCartItems] = useState({});
     const [searchQuery, setSearchQuery] = useState({});
 
+    //Fetch seller status
+    const fetchSeller = async ()=>{
+        try{
+            const {data} = await axios.get("/api/seller/is-auth")
+            if(data.success){
+                setIsSeller(true);
+            }else{
+                setIsSeller(false);
+            }
+        }catch(error){
+            setIsSeller(false);
+        }
+    }
+
     //Fetch all products
     const fetchProducts = async () => {
-        setProducts(dummyProducts);
+        try{
+            const {data} = await axios.get("/api/product/list")
+            if(data.success){
+                setProducts(data.products);
+            }else{
+                toast.error(data.message);
+            }
+        }catch(error){
+            toast.error(error.message);
+        }
     }
 
     //Add item to cart
@@ -44,7 +67,7 @@ export const AppContextProvider = ({children})=>{
         toast.success("Cart Successfully Updated!")
     }
 
-    //Remove profuct from cart
+    //Remove product from cart
     const removeFromCart = (itemId) => {
         let cartData = structuredClone(cartItems);
         if(cartData[itemId]){
@@ -80,11 +103,12 @@ export const AppContextProvider = ({children})=>{
     }
 
     useEffect(() => {
+        fetchSeller();
         fetchProducts();
     }, []);
 
     const value = {navigate, user, setUser, setIsSeller, isSeller, showUserLogin, setShowUserLogin, products, currency, addToCart, updateCartItem,
-    removeFromCart, cartItems, searchQuery, setSearchQuery, getCartAmount, getCartCount, axios};
+    removeFromCart, cartItems, searchQuery, setSearchQuery, getCartAmount, getCartCount, axios, fetchProducts};
     return <AppContext.Provider value={value}>
         {children}
     </AppContext.Provider>
