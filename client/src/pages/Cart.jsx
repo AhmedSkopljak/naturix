@@ -1,13 +1,15 @@
 import {useEffect, useState} from "react";
 import {useAppContext} from "../context/AppContext.jsx";
-import {assets, dummyAddress} from "../assets/assets.js";
+import {assets} from "../assets/assets.js";
+import toast from "react-hot-toast";
 
 const Cart = () => {
     const [showAddress, setShowAddress] = useState(false);
-    const {products, currency, navigate, getCartAmount, updateCartItem, removeFromCart, cartItems, getCartCount} = useAppContext();
+    const {products, currency, navigate, getCartAmount, updateCartItem, removeFromCart,
+        cartItems, getCartCount, axios, user, setCartItems} = useAppContext();
     const [cartArray, setCartArray] = useState([]);
-    const [addresses, setAddresses] = useState(dummyAddress);
-    const [selectedAdress, setSelectedAdress] = useState(dummyAddress[0]);
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddress, setSelectedAddress] = useState(null);
     const [paymentOption, setPaymentOption] = useState("COD");
 
     const getCart = () => {
@@ -20,8 +22,50 @@ const Cart = () => {
         setCartArray(tempArray);
     }
 
-    const placeOrder = async () => {
+    const getUserAddress = async () => {
+        try{
+            const {data} = await axios.get("/api/address/get");
+            if(data.success){
+                setAddresses(data.addresses);
+                if(data.addresses.length > 0){
+                    setSelectedAddress(data.addresses[0]);
+                }
+            }else{
+                toast.error(data.message);
+            }
+        }catch(error){
+            toast.error(error.message);
+        }
+    }
 
+    const placeOrder = async () => {
+        try {
+            if(!selectedAddress){
+                return toast.error("Please select an address");
+            }
+
+            //Place order with COD
+            if(paymentOption === "COD"){
+                const {data} = await axios.post("/api/order/cod", {
+                    userId: user._id,
+                    items: cartArray.map((item) => ({
+                        product: item._id,
+                        quantity: item.quantity
+                    })),
+                    address: selectedAddress._id
+                })
+
+                if(data.success){
+                    toast.success(data.message);
+                    setCartItems({});
+                    navigate("/my-orders");
+                }else{
+                    toast.error(data.message);
+                }
+            }
+        }catch(error){
+            toast.error(error.message);
+        }
     }
 
     useEffect(() => {
@@ -29,6 +73,12 @@ const Cart = () => {
             getCart();
         }
     },[products, cartItems]);
+
+    useEffect(() => {
+        if(user){
+            getUserAddress();
+        }
+    },[user])
     return products.length > 0 && cartItems ?(
         <div className="flex flex-col md:flex-row mt-16">
             <div className='flex-1 max-w-4xl'>
@@ -88,17 +138,17 @@ const Cart = () => {
                 <div className="mb-6">
                     <p className="text-sm font-medium uppercase">Delivery Address</p>
                     <div className="relative flex justify-between items-start mt-2">
-                        <p className="text-gray-500">{selectedAdress ? `${selectedAdress.street}, ${selectedAdress.city}, ${selectedAdress.state},
-                          ${selectedAdress.country}` : "No address found"}</p>
+                        <p className="text-gray-500">{selectedAddress ? `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state},
+                          ${selectedAddress.country}` : "No address found"}</p>
                         <button onClick={() => setShowAddress(!showAddress)} className="text-primary hover:underline cursor-pointer">
                             Change
                         </button>
                         {showAddress && (
                             <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full">
                                 {
-                                    addresses.map((adress, index) => (
-                                        <p onClick={() => {setShowAddress(false); setSelectedAdress(adress)}} className="text-gray-500 p-2 hover:bg-gray-100">
-                                            {adress.street}, {adress.city}, {adress.state}, {adress.country}
+                                    addresses.map((address, index) => (
+                                        <p onClick={() => {setShowAddress(false); setSelectedAddress(address)}} className="text-gray-500 p-2 hover:bg-gray-100">
+                                            {address.street}, {address.city}, {address.state}, {address.country}
                                         </p>
                                     ))
                                 }

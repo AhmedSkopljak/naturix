@@ -1,5 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {assets} from "../assets/assets.js";
+import {useAppContext} from "../context/AppContext.jsx";
+import toast from "react-hot-toast";
 
 const InputFiled = ({type, placeholder, name, handleChange, address}) => (
     <input className={"w-full px-2 py-2.5 border border-gray-500/30 rounded outline-none text-gray-500 focus:border-primary transition"}
@@ -13,6 +15,7 @@ const InputFiled = ({type, placeholder, name, handleChange, address}) => (
 )
 
 function AddAddress() {
+    const {axios, user, navigate} = useAppContext();
     const [address, setAddress] = useState({
         firstName: "",
         lastName: "",
@@ -34,8 +37,25 @@ function AddAddress() {
     }
 
     const onSubmitHandler = async (e) => {
-        e.preventDefault();
+        try{
+            e.preventDefault();
+            const {data} = await axios.post("/api/address/add", {address})
+            if (data.success){
+                toast.success(data.message);
+                navigate("/cart");
+            }else{
+                toast.error(data.message);
+            }
+        }catch(error){
+            toast.error(error.message);
+        }
     }
+
+    useEffect(() => {
+        if(!user){
+            navigate("/cart");
+        }
+    },[])
     return (
         <div className={"mt-16 pb-16"}>
             <p className={"text-2xl md:text-3xl text-gray-500"}>Add Shipping <span className={"font-semibold text-primary"}>Address</span></p>
