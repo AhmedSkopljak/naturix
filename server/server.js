@@ -10,12 +10,15 @@ import productRouter from "./routes/productRoute.js";
 import cartRuter from "./routes/cartRute.js";
 import addressRouter from "./routes/addressRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import {stripeWebhooks} from "./contollers/orderController.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
 const allowedOrigins = ['http://localhost:5173']
 
 await connectDB();
+
+app.post("/stripe", express.raw({type: "application/json"}), stripeWebhooks)
 
 //Middleware configuration
 app.use(express.json());
