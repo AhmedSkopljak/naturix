@@ -62,6 +62,9 @@ const Cart = () => {
                 }else{
                     toast.error(data.message);
                 }
+            }else{
+                //Place order with stripe
+
             }
         }catch(error){
             toast.error(error.message);
