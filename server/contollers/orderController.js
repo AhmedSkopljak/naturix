@@ -103,60 +103,67 @@ export const placeOrderStripe = async (req, res) => {
 }
 //Stripe webhooks to verify payments action : /stripe
 export const stripeWebhooks = async (req, res) => {
-    //Stripe gateway initialize
+    // 1. Inicijalizacija Stripe-a
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers["stripe-signature"];
     let event;
 
+    // 2. Verifikacija potpisa (MORAš imati raw body u middleware-u)
     try {
         event = stripeInstance.webhooks.constructEvent(
             req.body,
             sig,
             process.env.STRIPE_WEBHOOK_SECRET
         );
-    }catch(error){
-        res.status(400).send(`Webhook error: ${error.message}`);
+    } catch (error) {
+        console.error("Webhook verifikacija greška:", error.message);
+        return res.status(400).send(`Webhook error: ${error.message}`);
     }
 
-    //Handle the event
+    // 3. Logiranje za lakši debugging
+    console.log(`Stigao Stripe event: ${event.type}`);
+
+    // 4. Obrada eventa
     switch (event.type) {
-        case "payment_intent.succeeded":{
-            const paymentIntent = event.data.object;
-            const paymentIntentId = paymentIntent.id;
+        // Koristimo checkout.session.completed jer sesija sadrži SVE podatke (i metadata)
+        case "checkout.session.completed": {
+            const session = event.data.object;
+            const { orderId, userId } = session.metadata;
 
-            //Getting session metadata
-            const session = await stripeInstance.checkout.sessions.list({
-               payment_intent: paymentIntentId,
-            });
-            const {orderId, userId} = session.data[0].metadata;
+            console.log(`Potvrda plaćanja za narudžbu: ${orderId}`);
 
-            //Mark payment as paid
-            await Order.findByIdAndUpdate(orderId, {isPaid: true});
-            //clear user cart
-            await User.findByIdAndUpdate(userId, {cartItems: {}});
+            // Ažuriraj narudžbu u bazi
+            const order = await Order.findByIdAndUpdate(
+                orderId,
+                { isPaid: true },
+                { new: true }
+            );
+
+            // Očisti korpu ako je narudžba pronađena
+            if (order) {
+                await User.findByIdAndUpdate(userId, { cartItems: {} });
+                console.log("Narudžba uspješno ažurirana i korpa očišćena.");
+            }
             break;
         }
-        case "payment_intent.payment_failed":{
-            const paymentIntent = event.data.object;
-            const paymentIntentId = paymentIntent.id;
 
-            //Getting session metadata
-            const session = await stripeInstance.checkout.sessions.list({
-                payment_intent: paymentIntentId,
-            });
-            const {orderId} = session.data[0].metadata;
+        // Ako plaćanje nije prošlo (npr. odbijena kartica), obriši narudžbu
+        case "checkout.session.expired":
+        case "checkout.session.async_payment_failed": {
+            const session = event.data.object;
+            const { orderId } = session.metadata;
+            console.log(`Plaćanje nije uspjelo za order: ${orderId}. Brišem narudžbu.`);
             await Order.findByIdAndDelete(orderId);
             break;
         }
 
         default:
-            console.error(`Unknown event type ${event.type}`);
-            break;
+            console.log(`Ignoriran event: ${event.type}`);
     }
 
-    res.json({recieved: true});
+    // 5. Uvijek vrati odgovor Stripe-u
+    res.json({ received: true });
 }
-
 //Get orders by userId: /api/order/user
 export const getUserOrders = async (req, res) => {
     try{
