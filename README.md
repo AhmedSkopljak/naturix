@@ -1,3 +1,7 @@
+# naturix
+
+[![Live Preview](https://img.shields.io/badge/Live-Preview-brightgreen)](https://naturix.vercel.app/)
+
 🛒 Naturix | Full-Stack Grocery Delivery App
 Naturix is a comprehensive e-commerce solution built with the MERN stack, designed to streamline online grocery shopping. The application features a robust architecture that manages everything from secure user transactions to complex administrative inventory control and cloud-based asset management.
 
