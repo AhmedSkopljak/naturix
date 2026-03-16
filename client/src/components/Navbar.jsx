@@ -35,7 +35,9 @@ function Navbar() {
 
             <NavLink className={"flex justify-center items-center gap-2"} to={"/"} onClick={()=>setOpen(false)}>
                 <img src={logo} alt="logo" className={"h-9"}/>
-                <h1 className={"text-3xl font-extrabold text-primary tracking-tight"}>naturix</h1>
+                <h1 className="text-3xl font-bold text-primary tracking-tighter hover:tracking-tight transition-all duration-300">
+                    naturix
+                </h1>
             </NavLink>
 
             {/* Desktop Menu */}
@@ -87,7 +89,7 @@ function Navbar() {
 
             {/* Mobile Menu */}
             {open && (
-                <div className={`${open ? 'flex' : 'hidden'} absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}>
+                <div className={`${open ? 'flex' : 'hidden'} absolute top-[60px] z-50 left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden`}>
                     <NavLink to={"/"} onClick={()=>setOpen(false)}>Home</NavLink>
                     <NavLink to={"/products"} onClick={()=>setOpen(false)}>All Products</NavLink>
                     {user && <NavLink to={"/products"} onClick={()=>setOpen(false)}>My Orders</NavLink>}
